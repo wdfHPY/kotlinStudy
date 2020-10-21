@@ -12,7 +12,7 @@
 1. 区分作用域函数一个很重要特征可以通过Context Object（上下文对象）来区分用法。由于Scope Function 均是在一个对象的基础上执行一段代码。所以上下文对象和代码块之间的关系就可以区分使用方法。
    - 第一种：上下文对象作为代码块的接收器（receiver）。接收器可理解为，代码块传递给上下文对象了，上下文对象便作为代码块的接收器。
    - 第二种：上下文对象作为代码块的参数。相当与将上下文对象传递给代码块了，也可以这么说，代码块作为上下文对象的接收器。
-   - **本质上：第一种区别就在于传递方向不同**
+   - **本质上：第一种区别就在代码块访问上下文对象的方式**
 
 2. `T.let`、`T.run`
      ```kotlin
@@ -47,7 +47,50 @@
                 }
             
     ```
-    - 从两个函数源码的参数可以清楚显示第一种区别：
+    - 从两个函数源码的参数可以清楚显示第一种区别：T.run的函数参数为：`block: T.() -> R`，T.let的函数参数为`block: (T) -> R`。可以清楚的看到，代码块作为一个`lambda`表达式参数传递进来。T.run的lambda表达式参数是作为上下文参数的属性来使用，T.let的lambda函数的参数是上下文对象。这样上下文传参方向就带来在`T.run`和`T.let`使用上下文对象的不同。
+  - 
+        ```kotlin
+             class Request(val baseUrl: String) {
+                fun doPost() {
+                    println("Request doPost $baseUrl")
+                }
+            }
+
+            fun main() {
+                val req = Request("http://localhost:8080")
+                req.run {
+                    this.doPost()
+                }
+                req.let {
+                    it.doPost()
+                }
+            }
+        ```
+-  Inside the lambda of a scope function, the context object is available by a short reference instead of its actual name.Each scope function uses one of two ways to access the context object: as a lambda receiver (this) or as a lambda argument (it). Both provide the same capabilities, so we'll describe the pros and cons of each for different cases and provide recommendations on their use.
+-  在作用域函数的lambda中，可以通过**短引用**而不是其实际名称来使用上下文对象。每个作用域函数使用两种访问上下文对象的方式之一：作为lambda接收（this）或作为lambda自变量（it）。两者都提供相同的功能，因此我们将描述每种情况在每种情况下的利弊，并提供使用建议。
+-  main方法中分别在req对象的基础上调用了run和let。在代码块中，可以使用短引用来代替上下文对象，如果上下文对象作为代码块的接收器，那么使用`this `短引用来代替上下文对象。而`this`短引用可以省略。如果上下文对象作为代码块的参数， 那么使用`it`来代替上下文对象。
+
+
+##### this 
+- 官方Scope Function说明
+  - run, with, and apply refer to the context object as a lambda receiver - by keyword this. Hence, in their lambdas, the object is available as it would be in ordinary class functions. In most cases, you can omit this when accessing the members of the receiver object, making the code shorter. On the other hand, if this is omitted, it can be hard to distinguish between the receiver members and external objects or functions. So, having the context object as a receiver (this) is recommended for lambdas that mainly operate on the object members: call its functions or assign properties.
+  - `run`、`with`、`apply` 函数都是通过lambda接收器运行，使用并应用该上下文对象-通过关键字this。因此，在它们的lambda中，该对象是可用的，就像在普通类函数中一样。在大多数情况下，可以在访问接收器对象的成员时省略此操作，从而使代码更短。另一方面，如果省略，则很难区分接收器构件和外部对象或功能。因此，**对于主要对对象成员进行操作的lambda，建议将上下文对象作为接收器**：调用其函数或分配属性。
+    ```kotlin
+                class Student(val stuNo: String) {
+                    var stuName: String = ""
+                    var stuAge: Int = 0
+                    override fun toString(): String {
+                        return stuNo + "\t" + stuName + "\t" +stuAge
+                    }
+                }
+
+                fun main() {
+                    Student("kotlin").apply {
+                        stuName = "name"
+                        stuAge = 10
+                    }.run { println(toString()) }
+                }
+    ```
 
 
 ```kotlin
