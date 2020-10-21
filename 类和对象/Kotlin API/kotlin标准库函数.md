@@ -71,7 +71,7 @@
 -  main方法中分别在req对象的基础上调用了run和let。在代码块中，可以使用短引用来代替上下文对象，如果上下文对象作为代码块的接收器，那么使用`this `短引用来代替上下文对象。而`this`短引用可以省略。如果上下文对象作为代码块的参数， 那么使用`it`来代替上下文对象。
 
 
-##### this 
+##### this **变量创建临时范围**
 - 官方Scope Function说明
   - run, with, and apply refer to the context object as a lambda receiver - by keyword this. Hence, in their lambdas, the object is available as it would be in ordinary class functions. In most cases, you can omit this when accessing the members of the receiver object, making the code shorter. On the other hand, if this is omitted, it can be hard to distinguish between the receiver members and external objects or functions. So, having the context object as a receiver (this) is recommended for lambdas that mainly operate on the object members: call its functions or assign properties.
   - `run`、`with`、`apply` 函数都是通过lambda接收器运行，使用并应用该上下文对象-通过关键字this。因此，在它们的lambda中，该对象是可用的，就像在普通类函数中一样。在大多数情况下，可以在访问接收器对象的成员时省略此操作，从而使代码更短。另一方面，如果省略，则很难区分接收器构件和外部对象或功能。因此，**对于主要对对象成员进行操作的lambda，建议将上下文对象作为接收器**：调用其函数或分配属性。
@@ -107,6 +107,70 @@
 ```
 
 
+###### 通过Return value 来区分Scope Function
+-  第二种方式是他们返回不同的结果，通过此种可以将这些范围函数为两种。第一类：apply、also   第二类：let、run、with
+   -  apply and also return the context object.
+   -  let, run, and with return the lambda result.
+  
+  1. 直接返回上下文对象
+            - Context object：
+              - The return value of apply and also is the context object itself. Hence, they can be included into call chains as side steps: you can continue chaining function calls on the same object after them.
+              - They also can be used in return statements of functions returning the context object.
+              - 返回值也是上下文对象本身。因此，它们可以作为副步骤包含在调用链中：您可以在它们之后继续在同一对象上链接函数调用。
+              - 它们还可以用于返回上下文对象的函数的return语句中。
+  2. 返回lambda代码块的结果
+            - let, run, and with return the lambda result. So, you can use them when assigning the result to a variable, chaining operations on the result, and so on.
+            - Additionally, you can ignore the return value and use a scope function to create a temporary scope for variables
+            - 返回lambda结果。因此，在将结果分配给变量，对结果进行链接操作等时，可以使用let、run、with
+            - 当然，可以**忽略返回值**，并使用范围函数为**变量创建临时范围**。
+
+1. 直接返回上下文对象
+        ```kotlin
+                class Student(val stuNo: String) {
+                    var stuName: String = ""
+                    var stuAge: Int = 0
+                    override fun toString(): String {
+                        return stuNo + "\t" + stuName + "\t" +stuAge
+                    }
+
+                }
+
+                fun main() {
+                    val stu = Student("kotlin")
+                    println("one  " + stu.stuName)
+                    val str = stu.apply {
+                        stuName = "name"
+                        stuAge = 10
+                        "kotlin"
+                    }
+                    println("two  " + str)
+                }
+        ```
+-  运行结果：`two  kotlin	name	10`
+
+2. 返回lambda代码块的结果
+            ```kotlin
+                class Student(val stuNo: String) {
+                    var stuName: String = ""
+                    var stuAge: Int = 0
+                    override fun toString(): String {
+                        return stuNo + "\t" + stuName + "\t" +stuAge
+                    }
+
+                }
+
+                fun main() {
+                    val stu = Student("kotlin")
+                    println("one  " + stu.stuName)
+                    val str = stu.run {
+                        stuName = "name"
+                        stuAge = 10
+                        "kotlin"
+                    }
+                    println("two  " + str)
+                }
+            ```
+        - 运行结果：two  kotlin
 ```kotlin
         /**
         * Calls the specified function [block] and returns its result.
