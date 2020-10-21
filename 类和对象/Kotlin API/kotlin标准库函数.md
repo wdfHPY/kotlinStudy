@@ -92,6 +92,20 @@
                 }
     ```
 
+##### it
+- In turn, let and also have the context object as a lambda argument. If the argument name is not specified, the object is accessed by the implicit default name it. it is shorter than this and expressions with it are usually easier for reading. However, when calling the object functions or properties you don't have the object available implicitly like this. Hence, having the context object as it is better when the object is mostly used as an argument in function calls. it is also better if you use multiple variables in the code block.Additionally, when you pass the context object as an argument, you can provide a custom name for the context object inside the scope.
+- 反过来，`let`和`also`将上下文对象作为lambda参数。如果未指定参数名称，则使用**隐式默认名称**来访问该对象。它比这短，并且带有它的表达式通常更易于阅读。但是，在调用对象函数或属性时，您没有像这样隐式可用的对象。因此，**当在函数调用中将该对象主要用作自变量**时，最好使用上下文对象作为参数。如果在代码块中使用多个变量也更好。此外，当您将上下文对象作为参数传递时，可以在范围内为上下文对象提供自定义名称。（即不使用隐式默认参数时，可以提供自定义名称）
+
+```kotlin
+            fun getRandomInt(): Int {
+                return Random.nextInt(100).also { custom ->
+                    println("getRandomInt() generated value $custom")
+                }
+            }
+
+            val i = getRandomInt()
+```
+
 
 ```kotlin
         /**
