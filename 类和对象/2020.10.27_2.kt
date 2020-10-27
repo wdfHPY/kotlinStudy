@@ -70,6 +70,55 @@ class Oval(val name:String, val type:String):Circle(name) {
 //    }
 }
 
-fun main() {
-    Oval("ShapeCircle","type1").draw()
+/**
+ * 重写属性
+ */
+open class Paper(size:Int, name:String) {
+    init {
+        println(paperSize)
+    }
+    open val paperSize:Int
+        get() = 1
 }
+
+class A4(override val paperSize:Int, name:String, key:String):Paper(paperSize,name)
+
+/**
+ * 重写属性。和方法类似。属性默认也是final修饰的。需要加上open关键字来使其可以继承
+ * 派生类需要加上override关键字来重写属性。
+ * 1.重写属性时，需要注意一点，那就是修饰符。基类中val修饰的属性可以被派生成val、var。基类中var只能被派生成var
+ * 2.覆盖属性时 override 关键字可以放在主构造器中。
+ */
+
+
+open class Base(val name: String) {
+    open val size: Int =
+            name.length.also { println("Initializing size in Base: $it") }
+    val length = size
+    init {
+        println("Initializing Base $size")
+        println("Initializing Base2 $length")
+    }
+}
+class Derived(
+        name: String,
+        val lastName: String
+) : Base(name.capitalize().also { println("Argument for Base: $it") }) {
+    init { println("Initializing Derived") }
+    override val size: Int =
+            (super.size + lastName.length).also { println("Initializing size in Derived: $it") }
+}
+
+/**
+ * 派生类初始化数据
+ * 在构造派生类的新实例的过程中,第一步完成其基类的初始化。初始化在派生类之前。设计一个基类时,应该避免在构造函数、
+ * 属性初始化器以及 init 块中使用 open 成员。
+ */
+
+fun main() {
+//    Oval("ShapeCircle","type1").draw()
+    Derived("Ninja", "Sakara")
+}
+
+
+
