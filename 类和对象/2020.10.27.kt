@@ -65,6 +65,7 @@ class Student (name: String, sex: Int) {
      * 访问主构造函数的参数存在两种方式
      * 1. init代码块
      * 2. 属性参数构造器
+     * 3. init代码块最终会成为主构造函数的一部分。
      */
 }
 
@@ -90,9 +91,28 @@ class Bird2 constructor(kind: String, age: Int) {
     }
 }
 
-fun main() {
-    Student("James" , 1).Println()
-    Bird("fly", 2).Println()
-    Bird2("fly", 2).Println()
-}
+/**
+ * 从构造器 使用constructor 关键字来创建从构造器。每一个从构造器都是需要通过直接或者简间接委托给主构造器，使用this关键字。
+ */
 
+class Person2 (name:String) {
+    init {
+        println("This is Person2 init part")
+    }
+    var children: MutableList<Person2> = mutableListOf()
+    constructor(name:String, parent:Person2) :this(name){
+        parent.children.add(this)
+    }
+}
+fun main() {
+//    Student("James" , 1).Println()
+//    Bird("fly", 2).Println()
+//    Bird2("fly", 2).Println()
+    val parent = Person2("kill")
+    val child = Person2("kill", parent)
+    /**
+     * 初始化块中的代码实际上会成为主构造函数的一部分。托给主构造函数会作为次构造函数的第一条语句,因此所有初始化块与属性
+     * 初始化器中的代码都会在次构造函数体之前执行。即使该类没有主构造函数,这种委托仍会隐式发生,并且仍会执行初始化块，
+     * 所以在给child赋值创建的时候，仍然执行了init 函数。
+     */
+}
