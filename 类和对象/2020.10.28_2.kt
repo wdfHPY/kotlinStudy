@@ -60,6 +60,7 @@ class doStudy(override val name: String) :Study {
 
 }
 
+//解决实现多接口冲突时也和继承类一样使用super关键字来指定执行那个类中的方法
 fun main() {
     WorkPerson("kt").println()
     WorkPerson("kt").work()
