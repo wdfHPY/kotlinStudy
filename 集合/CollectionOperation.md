@@ -138,3 +138,109 @@
 
 #### 集合的字符串表示
 
+1. 主要存在两个函数.`joinTo()`和`joinToString()`这两个函数都是将`Collection`转化为`String`类型的函数.
+
+2. `joinTo`函数是将`Collection`字符串表示格式附加在后面的`Appendable`对象当中,`joinToString()`自定义`Collecion`转化为字符串的表现格式.
+
+3. ```kotlin
+       val sets = listOf("str1", "str2", "str3", "str4", "str5")
+       println(sets) // 输出结果为: [str1, str2, str3, str4, str5]
+       println(sets.toString()) // 输出结果为: [str1, str2, str3, str4, str5]
+       println(sets.joinToString()) //kotlin 中使用joinToString方法来将打印集合值 str1, str2, str3, str4, str5 默认的分隔符为 ,
+       //使用joinToString()方法的时候,还可以完成自定义toString的方法.
+       println(sets.joinToString(separator = "|", prefix = "* ", postfix = " *"))
+       /**
+        * separator: separator分隔符.
+        * prefix: String的前缀
+        * postfix: String的后缀
+        */
+       val numbers = (1..100).toList()
+       println(numbers.joinToString(limit = 9, truncated = "???"))
+       /**
+        * 如果集合的长度很长的话,可以通过joinToString方法中limit参数和truncated来简单省略的输出集合
+        * limit 参数设置的话,那么元素超出元素个数的话, 其他元素使用...来代替.不使用省略号的话,那么可以指定truncated来指定省略的样式
+        */
+       val sets2 = setOf("str1", "str2", "str3", "str4")
+       val res = StringBuffer("The Collection result is :") // -> The Collection result is :str1, str2, str3, str4
+       sets2.joinTo(res)
+       println(res)
+   ```
+
+   
+
+#### 过滤
+
+1.  对集合进行过滤是一种很常见的操作.去除不符合条件的.保留下满足条件.过滤可以使用在可变的集合中,也可以使用在不可变的集合当中.因为本质都不会去修改原来的Collection.
+
+2. 对集合的过滤的条件,`kotlin`官方称之为谓词.`List,Map`过滤之后是`List`, `Map`过滤之后是`Map`
+
+3. ```kotlin
+       val list = listOf("sr1", "sr2", "str3", "str4")
+       val sets = setOf(12,3,13,4,14)
+       val maps = mapOf("str1" to 1, "str3" to 3, "str4" to 14, "str5" to 17)
+       //Filter函数接受一个Lambda 表达式的谓词
+       val listFilter = list.filter { str ->
+           str.length > 3
+       }
+       val setFilter = sets.filter { number ->
+           number > 10
+       }
+       val mapFilter = maps.filter { entry ->
+           entry.key.endsWith("3") && entry.value < 10
+       }
+       println(listFilter) //List 过滤出来的结果为List
+       println(setFilter)  //Set 过滤出来的结果为Set
+       println(mapFilter) //Map 过滤出来的结果为Map.
+       /**
+        * 和集合Collection 映射的操作差不多.过滤也可以存在一个index.带索引的过滤
+        * 函数类型参数存在两个,一个是之前就存在的谓词,另外一个便是索引index
+        */
+       val list2 = listOf("syr1", "62s", "78S", "84R")
+       val list2Filter = list2.filterIndexed {index, value ->
+           index > 1 && value.endsWith("S")
+       }
+       println(list2Filter)
+       /**
+        * 当然,对于集合来说,存在正向的选择,那么就还存在反向的选择
+        * 使用FilterNot就可以完成反向的的过滤
+        */
+       val list3 = listOf("syr1", "62s", "78S", "84R")
+       val list3Filter = list3.filterNot {value ->
+           value.endsWith("S")
+       }
+       println(list3Filter)
+       /**
+        * 当然, filter 不仅仅可以针对谓词,还可以针对谓词的函数类型
+        * kotlin 函数库中已经存在谓词的函数类型了
+        */
+       val list4 = listOf(null, 1, "String", 103F, 1093.8) //这里List的函数类型是List<Any>,可以使用FilterIsInstance来判断是否是需要的的谓词类型
+       val list4Filter = list4.filterIsInstance<String>()
+       println(list4Filter)
+       /**
+        * 和映射差不多是,也存在非空过滤
+        */
+       val list5 = listOf("1", "2", "3", "4", "5", "6", "6", "7", null)
+       println(list5)
+       val list5Filter = list5.filterNotNull()
+       println(list5Filter)
+   ```
+
+   #### 划分
+
+   1. 集合的划分也是集合过滤的一种.将一个集合按照谓词提供的条件划分成为两个`List`.其中一个`List`中存在满足条件的值,而另外一个集合中存储另外一个不满足条件的值.
+
+   2. 使用函数`partition()`
+
+   3. ```kotlin
+      //集合的划分
+      fun main() {
+          val numbers = listOf("one", "two", "three", "four")
+          val (match, rest) = numbers.partition { it.length > 3 }
+          println(match)
+          println(rest)
+      }
+      //结果为:
+      [three, four]
+      [one, two]
+      ```
+
