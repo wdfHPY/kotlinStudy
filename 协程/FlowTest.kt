@@ -8,6 +8,10 @@ import java.lang.RuntimeException
 import kotlin.math.log
 import kotlin.system.measureTimeMillis
 
+/**
+ * 在之前suspend中，一般是使用返回单个的值。如果存在这种情况，需要异步的计算出多个值。此时单是一个suspend函数肯定没有办法
+ * 完成多个值的返回。而如果直接的返回一个集合的话，那么此时又不能表达出非阻塞的概念。
+ */
 fun simple(): Flow<Int> = flow {
     for (i in 1..3) {
         delay(100)
