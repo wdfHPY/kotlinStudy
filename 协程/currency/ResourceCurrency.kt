@@ -95,9 +95,9 @@ val mutex = Mutex()
 fun resourceTest3() = runBlocking {
     withContext(Dispatchers.Default) {
         coroutineUseResource3 {
-            mutex.withLock {
+/*            mutex.withLock {
                 counter++
-            }
+            }*/
         }
 
     }
