@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
-class Flow {
+class Flow2<T> {
 
     private val flowA: Flow<Int> = flowOf(1,2,3)
 

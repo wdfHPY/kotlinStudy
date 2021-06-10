@@ -4,7 +4,7 @@ import kotlinx.coroutines.*
 
 
 fun main() {
-    coroutine2Test11()
+    runBlocking { doTest2() }
 }
 
 /*
@@ -196,8 +196,51 @@ fun coroutine2Test11() = runBlocking {
     println(hotDataSource)
 }
 
-suspend fun doStringAndReturn() :String {
+suspend fun doStringAndReturn(): String {
     delay(2000)
     return "This is final result"
 }
+
+fun doTest() {
+    runBlocking {
+        supervisorScope {
+            val a = async(Dispatchers.IO) {
+                delay(500)
+                throw Exception("excep a")
+                2
+            }
+            val b = async(Dispatchers.IO) {
+                delay(500)
+                3
+            }
+            try {
+                println(a.await() + b.await())
+            } catch (e: Exception) {
+                println("exception: ${e.message}")
+            }
+        }
+    }
+
+}
+
+suspend fun doTest2() {
+
+    CoroutineScope(Dispatchers.IO + SupervisorJob()).launch(CoroutineExceptionHandler { _, throwable ->
+        println("$throwable")
+    }) {
+        val a = async {
+            delay(500)
+            throw Exception("excep a")
+            2
+        }
+        val b = async {
+            delay(500)
+            3
+        }
+        println(a.await() + b.await())
+    }
+}
+
+
+
 
