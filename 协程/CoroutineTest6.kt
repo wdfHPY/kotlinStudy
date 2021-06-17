@@ -3,6 +3,8 @@ package com.lonbon.kotlin
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
+import java.math.BigInteger
+import java.util.*
 
 val myFlow1 = flow {
     repeat(20) {
@@ -44,11 +46,6 @@ fun withOutCoroutineScope() = runBlocking {
     println("launch complete")
 }
 
-fun doCoroutineTest() = runBlocking {
-    scopeFunction()
-    println("The Caller Code Execute")
-}
-
 /**
  * suspend function 仍然是顺序执行的。挂起 suspend 本身来说和并发一点关系都没有，那么kotlin 中难道不支持并发？ 不 ，kotlin 中是支持并发的。
  * 但是并发和 suspend 之间不存在任何的联系。 kotlin 中的并发是通过 CoroutineScope 结构化并发来支持的，而 suspend 仅仅是提供挂起/恢复的功能。
@@ -76,7 +73,85 @@ suspend fun obersveFunction() {
  * 一个结构化并发体并不会影响到另外一个结构化并发体的内部。在结构的内部，可以方便的对并发进行控制。一个结构体中逻辑是Black Box，是一个
  * 黑盒，那么就可以进行逻辑局部推理，可以方便对异常进行处理。这一切都是基于结构化好处。
  */
-fun CoroutineScope.scopeFunction() = launch {
+
+/**
+ * scopeFunction() 就是一个suspend Function。他的scopeFunction目前就不涉及到任何的并发。在doCoroutineTest()中調用了scopeFunction。他执行的顺序仍然是
+ * 先执行scopeFunction()执行println("scopeFunction!!")，然后执行println("suspend Function Execute!")这句话。
+ * 所以suspend函数在代码是顺序执行的。 单 suspend 修饰的函数默认运行在主线程。并且 suspend 函数 和的 call suspend 函数执行是顺序执行的。
+ * 下面scopeFunction和scopeFunction2 证明了挂起函数的确的实现了 在不阻塞call suspend function 线程下执行一段代码。
+ *
+ * 通过打印 Thread 的 state 可以发现调用suspend 的时候，被调用的线程处于 TIMED_WAITING 的状态并不是阻塞的状态。
+ */
+suspend fun scopeFunction(thread:Thread): Int {
+    println("threadName Alive :${thread.state}")
+    println("threadName Name :${thread.name}")
+    return withContext(Dispatchers.IO) {
+        delay(10000)
+        println("scopeFunction!! ${Thread.currentThread().name}")
+        println("threadName Alive: ${thread.state}")
+        9
+    }
+}
+
+suspend fun scopeFunction2(thread: Thread): Int {
+    println(thread.name)
     delay(10000)
-    print("In CoroutineScope")
+    println(thread.isAlive)
+    return 9
+}
+
+fun doCoroutineTest() = runBlocking {
+    println("suspend Function Execute! ${scopeFunction(Thread.currentThread())}")
+}
+
+fun doCoroutineTest2() = runBlocking {
+    println("suspend Function Execute! ${coroutineSuspend()}")
+}
+
+
+/**
+ * 虽然看到suspend 的挂起和恢复不会阻塞掉调用者的线程，那么如何实现并发？ kotlin的并发是通过CoroutineScope来完成的。
+ * 单纯的suspend 不可能实现代码和代码的并发，但是suspend是实现Coroutine的基础。
+ *
+ * 使用launch{} 协程构建器构建一个Coroutine。构建出Coroutine之后会立刻返回。
+ * 下面就是这个约定：
+ * every function that is declared as extension on CoroutineScope returns immediately,
+ * but performs its actions concurrently with the rest of the program.在 CoroutineScope 上声明为扩展的每个函数都会立即返回，
+ * 但是它的操作会与程序的其余部分并发执行。
+ *
+ * 所以下面的 函数签名是错误的： `suspend fun CoroutineScope.obfuscate(data: Data)`
+ *
+ * 这个函数能做什么？它是一个暂停函数，所以我们知道，根据定义，它可以暂停协同程序的执行。但它也被定义为 CoroutineScope
+ * 的一个扩展，因此它可以启动一个新的协同程序来做一些与程序的其余部分同时工作的事情。那它为什么要暂停执行呢？
+ * 其操作的哪些部分是同时执行的？如果不阅读它的文档和/或源代码，就无法判断。
+ *
+ * 另一方面，如果我们选择将它声明为一个挂起函数: suspend fun obfuscate(data: Data)  然后，按照惯例，我们知道它在不阻塞调用者的情况下执行其混淆操作，并在完成后返回给调用者。
+ *
+ * 或者，如果我们选择将其声明为 CoroutineScope 扩展:
+ * fun CoroutineScope.obfuscate(data: Data) 然后，根据约定，我们知道它会立即返回，而不会阻塞调用方，并开始与程序的其余部分并发地执行其模糊处理。
+ */
+
+suspend fun CoroutineScope.coroutineSuspend() = this.launch {
+    delay(10000)
+    println("do Suspend")
+}
+
+suspend fun orderExecute(funct: suspend () -> Unit) {
+    funct.invoke()
+    print("只有在挂起函数返回后执行")
+}
+
+fun CoroutineScope.suspendNotBlockThread() = launch {
+    println("Before Call Suspend Function")
+//    scopeFunction()
+    println("After Call Suspend Function")
+}
+
+suspend fun findBigPrime(): BigInteger =
+    withContext(Dispatchers.Default) {
+        BigInteger.probablePrime(4096, Random())
+    }
+
+suspend fun main3() {
+    findBigPrime()
 }
